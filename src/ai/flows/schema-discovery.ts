@@ -21,9 +21,12 @@ export async function discoverSchema(input: DiscoverSchemaInput): Promise<Discov
   return discoverSchemaFlow(input);
 }
 
+// Define the input schema for the prompt as non-nullable string
+const DiscoverSchemaPromptInputSchema = z.string().describe('A JSON string representing the data to analyze.');
+
 const discoverSchemaPrompt = ai.definePrompt({
   name: 'discoverSchemaPrompt',
-  input: {schema: DiscoverSchemaInputSchema},
+  input: {schema: DiscoverSchemaPromptInputSchema},
   output: {schema: DiscoverSchemaOutputSchema},
   prompt: `You are a data analyst. Analyze the following JSON data structure and identify the main entities, their fields, and their data types. Return a JSON schema representing this structure.
 
@@ -37,7 +40,7 @@ const discoverSchemaFlow = ai.defineFlow(
     outputSchema: DiscoverSchemaOutputSchema,
   },
   async input => {
-    if (!input) {
+    if (input === null || typeof input === 'undefined') {
       throw new Error('Input data is null or undefined.');
     }
     const {output} = await discoverSchemaPrompt(input);
