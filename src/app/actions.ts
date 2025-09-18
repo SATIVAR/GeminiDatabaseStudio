@@ -54,8 +54,8 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
                       const metaKeyEl = el.elements?.find((e:any) => e.name === 'wp:meta_key');
                       const metaValueEl = el.elements?.find((e:any) => e.name === 'wp:meta_value');
                       
-                      const metaKey = metaKeyEl?.elements?.[0]?.cdata;
-                      const metaValue = metaValueEl?.elements?.[0]?.cdata;
+                      const metaKey = metaKeyEl?.elements?.[0]?.cdata ?? metaKeyEl?.elements?.[0]?.text;
+                      const metaValue = metaValueEl?.elements?.[0]?.cdata ?? metaValueEl?.elements?.[0]?.text;
                       if (metaKey) {
                         product[metaKey] = metaValue;
                       }
@@ -72,7 +72,7 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
                         product[el.name].push(categoryValue);
                     }
                   }
-                   else if (el.name && value){
+                   else if (el.name && value !== undefined){
                      product[el.name] = value;
                   }
               });
@@ -102,19 +102,23 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
     }
     
     if (jsonData.length === 0 && jsonString) {
-      const parsedData = JSON.parse(jsonString);
-      const mainArray = findMainArray(parsedData);
-      
-      if (!mainArray && Object.keys(parsedData).length > 0) {
-        // If it's a single object, wrap it in an array
-        jsonData = [parsedData];
-        jsonString = JSON.stringify(jsonData, null, 2);
-      } else if (mainArray) {
-         jsonData = mainArray;
-         jsonString = JSON.stringify(jsonData, null, 2);
-      } else {
-        throw new Error('Não foi possível encontrar um array principal de objetos nos dados.');
-      }
+        try {
+            const parsedData = JSON.parse(jsonString);
+            const mainArray = findMainArray(parsedData);
+            
+            if (!mainArray && Object.keys(parsedData).length > 0) {
+                // If it's a single object, wrap it in an array
+                jsonData = [parsedData];
+                jsonString = JSON.stringify(jsonData, null, 2);
+            } else if (mainArray) {
+                jsonData = mainArray;
+                jsonString = JSON.stringify(jsonData, null, 2);
+            } else {
+                throw new Error('Não foi possível encontrar um array principal de objetos nos dados.');
+            }
+        } catch(e) {
+            throw new Error('Falha ao analisar o JSON do arquivo. Verifique o formato.');
+        }
     }
 
     if (jsonData.length === 0) {
