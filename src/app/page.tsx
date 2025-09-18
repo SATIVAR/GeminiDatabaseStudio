@@ -103,9 +103,9 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden p-4 md:p-8">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-start overflow-hidden p-4 pt-20 md:p-8 md:pt-20">
       
-      <main className="z-10 flex w-full max-w-7xl flex-col items-center">
+      <main className="z-10 flex w-full max-w-7xl flex-1 flex-col items-center justify-center">
         <div className="flex items-center gap-4 mb-4">
            <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center border border-primary/50 shadow-[0_0_15px_0_hsl(var(--primary)/0.5)]">
              <DatabaseZap size={28} className="text-primary" />
