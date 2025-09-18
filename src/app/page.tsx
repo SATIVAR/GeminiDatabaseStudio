@@ -1,3 +1,131 @@
+'use client';
+
+import { useState } from 'react';
+import { UploadCloud } from 'lucide-react';
+
+import type { SourceField, TargetField, OutputFormat } from '@/components/data-studio/types';
+import { UploadStep } from '@/components/data-studio/upload-step';
+import { MappingStep } from '@/components/data-studio/mapping-step';
+import { PreviewStep } from '@/components/data-studio/preview-step';
+import { LoadingAnimation } from '@/components/data-studio/loading-animation';
+import { transformDataAction } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
+
 export default function Home() {
-  return <></>;
+  const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
+  
+  const [sourceData, setSourceData] = useState<Record<string, any>[]>([]);
+  const [sourceSchema, setSourceSchema] = useState<SourceField[]>([]);
+  
+  const [transformedData, setTransformedData] = useState('');
+  const [outputFormat, setOutputFormat] = useState<OutputFormat>('JSON');
+  
+  const { toast } = useToast();
+
+  const handleUploadSuccess = (data: { sourceData: Record<string, any>[], sourceSchema: SourceField[] }) => {
+    setSourceData(data.sourceData);
+    setSourceSchema(data.sourceSchema);
+    setStep(2);
+    setIsLoading(false);
+  };
+
+  const handleTransform = async (targetSchema: TargetField[], format: OutputFormat) => {
+    setIsLoading(true);
+    setLoadingMessage('Performing intelligent transformation...');
+    setOutputFormat(format);
+
+    try {
+      const result = await transformDataAction({
+        sourceData: JSON.stringify(sourceData),
+        targetSchema,
+        outputFormat: format,
+      });
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      
+      setTransformedData(result.transformedData!);
+      setStep(3);
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: 'destructive',
+        title: 'Transformation Failed',
+        description: error instanceof Error ? error.message : 'An unknown error occurred.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStartOver = () => {
+    setStep(1);
+    setSourceData([]);
+    setSourceSchema([]);
+    setTransformedData('');
+  };
+
+  const renderStep = () => {
+    if (isLoading) {
+      return <LoadingAnimation message={loadingMessage} />;
+    }
+
+    switch (step) {
+      case 1:
+        return (
+          <UploadStep 
+            onSuccess={handleUploadSuccess} 
+            setIsLoading={setIsLoading}
+            setLoadingMessage={setLoadingMessage}
+          />
+        );
+      case 2:
+        return (
+          <MappingStep 
+            sourceSchema={sourceSchema} 
+            onTransform={handleTransform} 
+          />
+        );
+      case 3:
+        return (
+          <PreviewStep 
+            data={transformedData} 
+            format={outputFormat} 
+            onStartOver={handleStartOver} 
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden p-4 md:p-8">
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-primary/10 glow-primary opacity-20 blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 h-1/2 w-1/2 bg-accent/10 glow-accent opacity-20 blur-3xl"></div>
+      </div>
+      
+      <main className="z-10 flex w-full max-w-7xl flex-col items-center">
+        <div className="flex items-center gap-4 mb-4">
+           <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center border border-primary/50">
+              <UploadCloud className="w-6 h-6 text-primary" />
+           </div>
+           <h1 className="text-4xl md:text-5xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-white to-white/70">
+            Gemini Data Studio
+          </h1>
+        </div>
+        <p className="text-muted-foreground text-lg md:text-xl mb-10 text-center max-w-2xl">
+          Upload, map, and transform your data into any format with an AI-powered engine.
+        </p>
+
+        <div className="w-full transition-all duration-500">
+          {renderStep()}
+        </div>
+      </main>
+    </div>
+  );
 }
