@@ -103,22 +103,23 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-start overflow-hidden p-4 pt-20 md:p-8 md:pt-20">
-      
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden p-4 md:p-8">
       <main className="z-10 flex w-full max-w-7xl flex-1 flex-col items-center justify-center">
-        <div className="flex items-center gap-4 mb-4">
-           <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center border border-primary/50 shadow-[0_0_15px_0_hsl(var(--primary)/0.5)]">
-             <DatabaseZap size={28} className="text-primary" />
-           </div>
-           <h1 className="text-4xl md:text-5xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-white to-white/70">
-            Gemini Data Studio
-          </h1>
+        <div className="flex flex-col items-center text-center mb-10">
+          <div className="flex items-center gap-4 mb-4">
+             <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center border border-primary/50 shadow-[0_0_15px_0_hsl(var(--primary)/0.5)]">
+               <DatabaseZap size={28} className="text-primary" />
+             </div>
+             <h1 className="text-4xl md:text-5xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-white to-white/70">
+              Gemini Data Studio
+            </h1>
+          </div>
+          <p className="text-muted-foreground text-lg md:text-xl max-w-2xl">
+            Faça o upload, mapeie e transforme seus dados em qualquer formato com um mecanismo de IA.
+          </p>
         </div>
-        <p className="text-muted-foreground text-lg md:text-xl mb-10 text-center max-w-2xl">
-          Faça o upload, mapeie e transforme seus dados em qualquer formato com um mecanismo de IA.
-        </p>
 
-        <div className="w-full transition-all duration-500">
+        <div className="w-full transition-all duration-500 max-w-3xl">
           {renderStep()}
         </div>
       </main>
