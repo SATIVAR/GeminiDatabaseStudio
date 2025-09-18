@@ -126,4 +126,7 @@
   .glow-accent {
     @apply shadow-[0_0_20px_2px_theme(colors.accent/0.3)];
   }
+  .animate-grid-pan {
+    animation: grid-pan 15s linear infinite;
+  }
 }

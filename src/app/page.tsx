@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UploadCloud, DatabaseZap } from 'lucide-react';
 
 import type { SourceField, TargetField, OutputFormat } from '@/components/data-studio/types';
@@ -23,6 +23,14 @@ export default function Home() {
   const [outputFormat, setOutputFormat] = useState<OutputFormat>('JSON');
   
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (isLoading) {
+      document.body.classList.add('animate-grid-pan');
+    } else {
+      document.body.classList.remove('animate-grid-pan');
+    }
+  }, [isLoading]);
 
   const handleUploadSuccess = (data: { sourceData: Record<string, any>[], sourceSchema: SourceField[] }) => {
     setSourceData(data.sourceData);

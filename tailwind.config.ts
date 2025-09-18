@@ -92,6 +92,10 @@ export default {
           '0%, 100%': { boxShadow: '0 0 15px 0 hsl(var(--primary) / 0.5)' },
           '50%': { boxShadow: '0 0 25px 5px hsl(var(--primary) / 0.7)' },
         },
+        'grid-pan': {
+          '0%': { backgroundPosition: '0% 0%' },
+          '100%': { backgroundPosition: '40px 40px' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
