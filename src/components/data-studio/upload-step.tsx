@@ -90,8 +90,9 @@ export const UploadStep = ({ onSuccess, setIsLoading, setLoadingMessage }: Uploa
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       className={cn(
-        "w-full h-[40vh] max-w-3xl glass-card flex flex-col items-center justify-center p-8 text-center cursor-pointer border-dashed border-2 transition-all",
-        isDragging ? "border-accent glow-accent" : "border-transparent"
+        "group w-full h-[40vh] max-w-3xl glass-card flex flex-col items-center justify-center p-8 text-center cursor-pointer border-dashed border-2 border-border/30 transition-all",
+        "hover:border-solid hover:glow-accent",
+        isDragging ? "border-solid border-accent glow-accent" : ""
       )}
     >
       <input
@@ -104,8 +105,9 @@ export const UploadStep = ({ onSuccess, setIsLoading, setLoadingMessage }: Uploa
       <label htmlFor="file-upload" className="w-full h-full flex flex-col items-center justify-center cursor-pointer">
         <UploadCloud
           className={cn(
-            "w-20 h-20 mb-4 transition-transform duration-300",
-            isDragging ? "text-accent scale-110" : "text-muted-foreground"
+            "w-20 h-20 mb-4 text-muted-foreground transition-all duration-300",
+            "group-hover:text-accent group-hover:scale-110",
+            isDragging ? "text-accent scale-110" : ""
           )}
         />
         <h2 className="text-2xl font-semibold">
