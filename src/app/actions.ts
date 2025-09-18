@@ -42,14 +42,14 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
       jsonData = xlsx.utils.sheet_to_json(worksheet);
       jsonString = JSON.stringify(jsonData, null, 2);
     } else {
-      throw new Error(`Unsupported file type: ${fileType}. Please upload JSON, XML, or Excel files.`);
+      throw new Error(`Tipo de arquivo não suportado: ${fileType}. Por favor, envie arquivos JSON, XML ou Excel.`);
     }
 
     const parsedData = JSON.parse(jsonString);
     const mainArray = findMainArray(parsedData);
     
     if (!mainArray) {
-      throw new Error('Could not find a main array of objects in the data.');
+      throw new Error('Não foi possível encontrar um array principal de objetos nos dados.');
     }
     
     jsonData = mainArray;
@@ -57,7 +57,7 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
     // Use a sample of the data for schema discovery to avoid oversized payloads
     const dataForSchemaDiscovery = jsonData.slice(0, 5);
     if (dataForSchemaDiscovery.length === 0) {
-      throw new Error('No data found to generate a schema.');
+      throw new Error('Nenhum dado encontrado para gerar um esquema.');
     }
     
     const schemaResponse = await discoverSchema(JSON.stringify(dataForSchemaDiscovery));
@@ -72,7 +72,7 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
     const parsedSchema = SchemaProperties.safeParse(JSON.parse(schemaResponse));
     
     if (!parsedSchema.success) {
-      throw new Error('AI failed to generate a valid schema. Please check the data format.');
+      throw new Error('A IA falhou em gerar um esquema válido. Por favor, verifique o formato dos dados.');
     }
 
     const sourceSchema: SourceField[] = Object.entries(parsedSchema.data.properties).map(([key, value]) => ({
@@ -84,11 +84,11 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
     return { sourceData: jsonData, sourceSchema };
 
   } catch (error) {
-    console.error('Schema discovery error:', error);
+    console.error('Erro na descoberta do esquema:', error);
     if (error instanceof Error) {
-       return { error: `Failed to process file: ${error.message}` };
+       return { error: `Falha ao processar o arquivo: ${error.message}` };
     }
-    return { error: 'An unknown error occurred during schema discovery.' };
+    return { error: 'Ocorreu um erro desconhecido durante a descoberta do esquema.' };
   }
 }
 
@@ -101,25 +101,25 @@ export async function transformDataAction(input: IntelligentDataTransformationIn
       try {
         JSON.parse(result.transformedData);
       } catch (e) {
-        throw new Error('AI generated invalid JSON. Please try again.');
+        throw new Error('A IA gerou um JSON inválido. Por favor, tente novamente.');
       }
     } else if (input.outputFormat === 'SQL') {
       if (!result.transformedData.toLowerCase().includes('insert into')) {
-         throw new Error('AI generated invalid SQL. Please try again.');
+         throw new Error('A IA gerou um SQL inválido. Por favor, tente novamente.');
       }
     } else if (input.outputFormat === 'XML') {
       // Very basic XML check
       if (!result.transformedData.startsWith('<')) {
-        throw new Error('AI generated invalid XML. Please try again.');
+        throw new Error('A IA gerou um XML inválido. Por favor, tente novamente.');
       }
     }
 
     return { transformedData: result.transformedData };
   } catch (error) {
-    console.error('Transformation error:', error);
+    console.error('Erro na transformação:', error);
     if (error instanceof Error) {
-      return { error: `Transformation failed: ${error.message}` };
+      return { error: `A transformação falhou: ${error.message}` };
     }
-    return { error: 'An unknown error occurred during data transformation.' };
+    return { error: 'Ocorreu um erro desconhecido durante a transformação dos dados.' };
   }
 }

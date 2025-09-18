@@ -33,7 +33,7 @@ export default function Home() {
 
   const handleTransform = async (targetSchema: TargetField[], format: OutputFormat) => {
     setIsLoading(true);
-    setLoadingMessage('Performing intelligent transformation...');
+    setLoadingMessage('Realizando transformação inteligente...');
     setOutputFormat(format);
 
     try {
@@ -53,8 +53,8 @@ export default function Home() {
       console.error(error);
       toast({
         variant: 'destructive',
-        title: 'Transformation Failed',
-        description: error instanceof Error ? error.message : 'An unknown error occurred.',
+        title: 'Falha na Transformação',
+        description: error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.',
       });
     } finally {
       setIsLoading(false);
@@ -115,7 +115,7 @@ export default function Home() {
           </h1>
         </div>
         <p className="text-muted-foreground text-lg md:text-xl mb-10 text-center max-w-2xl">
-          Upload, map, and transform your data into any format with an AI-powered engine.
+          Faça o upload, mapeie e transforme seus dados em qualquer formato com um mecanismo de IA.
         </p>
 
         <div className="w-full transition-all duration-500">

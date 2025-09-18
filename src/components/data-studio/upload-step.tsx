@@ -19,7 +19,7 @@ export const UploadStep = ({ onSuccess, setIsLoading, setLoadingMessage }: Uploa
 
   const handleFile = useCallback(async (file: File) => {
     setIsLoading(true);
-    setLoadingMessage('Analyzing file structure...');
+    setLoadingMessage('Analisando a estrutura do arquivo...');
     
     try {
       const fileType = file.type;
@@ -43,8 +43,8 @@ export const UploadStep = ({ onSuccess, setIsLoading, setLoadingMessage }: Uploa
       console.error(error);
       toast({
         variant: 'destructive',
-        title: 'Upload Failed',
-        description: error instanceof Error ? error.message : 'Could not process the file.',
+        title: 'Falha no Upload',
+        description: error instanceof Error ? error.message : 'Não foi possível processar o arquivo.',
       });
       setIsLoading(false);
     }
@@ -109,10 +109,10 @@ export const UploadStep = ({ onSuccess, setIsLoading, setLoadingMessage }: Uploa
           )}
         />
         <h2 className="text-2xl font-semibold">
-          {isDragging ? "Drop it like it's hot!" : "Drag & drop your data file here"}
+          {isDragging ? "Solte o arquivo!" : "Arraste e solte seu arquivo de dados aqui"}
         </h2>
         <p className="text-muted-foreground mt-2">
-          or click to browse. Supports XML, Excel, and JSON files.
+          ou clique para procurar. Suporta arquivos XML, Excel e JSON.
         </p>
       </label>
     </div>

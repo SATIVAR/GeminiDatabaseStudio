@@ -21,8 +21,8 @@ export const LoadingAnimation = ({ message, className }: { message: string; clas
         <div className="w-8 h-8 bg-primary rounded-full animate-pulse shadow-[0_0_20px_4px_hsl(var(--primary)/0.7)]" />
       </div>
       <div className="flex flex-col items-center">
-        <p className="text-xl font-medium text-foreground tracking-wide">{message || 'Processing...'}</p>
-        <p className="text-md text-muted-foreground mt-1">AI is working its magic. Please wait a moment.</p>
+        <p className="text-xl font-medium text-foreground tracking-wide">{message || 'Processando...'}</p>
+        <p className="text-md text-muted-foreground mt-1">A IA está fazendo sua mágica. Por favor, aguarde um momento.</p>
       </div>
     </div>
   );

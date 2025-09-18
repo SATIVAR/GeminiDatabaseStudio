@@ -45,8 +45,8 @@ export const MappingStep = ({ sourceSchema, onTransform }: MappingStepProps) => 
               <Settings2 className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-2xl">Define Target Schema</CardTitle>
-              <CardDescription>Map source fields to your desired output structure.</CardDescription>
+              <CardTitle className="text-2xl">Definir Esquema de Destino</CardTitle>
+              <CardDescription>Mapeie os campos de origem para a estrutura de saída desejada.</CardDescription>
             </div>
         </div>
       </CardHeader>
@@ -55,10 +55,10 @@ export const MappingStep = ({ sourceSchema, onTransform }: MappingStepProps) => 
           <Table>
             <TableHeader className="sticky top-0 bg-card/80 backdrop-blur-sm">
               <TableRow>
-                <TableHead className="w-[50px]">Include</TableHead>
-                <TableHead>Source Field</TableHead>
-                <TableHead>Target Field</TableHead>
-                <TableHead className="w-[150px]">Data Type</TableHead>
+                <TableHead className="w-[50px]">Incluir</TableHead>
+                <TableHead>Campo de Origem</TableHead>
+                <TableHead>Campo de Destino</TableHead>
+                <TableHead className="w-[150px]">Tipo de Dado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -68,7 +68,7 @@ export const MappingStep = ({ sourceSchema, onTransform }: MappingStepProps) => 
                     <Checkbox
                       checked={field.include}
                       onCheckedChange={(checked) => handleFieldChange(index, { include: !!checked })}
-                      aria-label={`Include ${field.sourceField}`}
+                      aria-label={`Incluir ${field.sourceField}`}
                     />
                   </TableCell>
                   <TableCell className="font-mono text-muted-foreground">{field.sourceField}</TableCell>
@@ -87,13 +87,13 @@ export const MappingStep = ({ sourceSchema, onTransform }: MappingStepProps) => 
                       disabled={!field.include}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Data Type" />
+                        <SelectValue placeholder="Tipo de Dado" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="auto">Auto</SelectItem>
-                        <SelectItem value="string">String</SelectItem>
-                        <SelectItem value="number">Number</SelectItem>
-                        <SelectItem value="boolean">Boolean</SelectItem>
+                        <SelectItem value="auto">Automático</SelectItem>
+                        <SelectItem value="string">Texto (String)</SelectItem>
+                        <SelectItem value="number">Número</SelectItem>
+                        <SelectItem value="boolean">Booleano</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
@@ -105,10 +105,10 @@ export const MappingStep = ({ sourceSchema, onTransform }: MappingStepProps) => 
       </CardContent>
       <CardFooter className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-muted-foreground">Output Format:</span>
+            <span className="text-sm font-medium text-muted-foreground">Formato de Saída:</span>
              <Select value={outputFormat} onValueChange={(v: OutputFormat) => setOutputFormat(v)}>
                 <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select format" />
+                    <SelectValue placeholder="Selecione o formato" />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="JSON">JSON</SelectItem>
@@ -118,7 +118,7 @@ export const MappingStep = ({ sourceSchema, onTransform }: MappingStepProps) => 
             </Select>
         </div>
         <Button onClick={handleSubmit} size="lg" className="glow-primary hover:glow-primary">
-          Transform Data <ArrowRight className="ml-2 h-4 w-4" />
+          Transformar Dados <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
     </Card>

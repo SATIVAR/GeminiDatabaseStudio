@@ -18,7 +18,7 @@ export const PreviewStep = ({ data, format, onStartOver }: PreviewStepProps) => 
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `transformed_data.${format.toLowerCase()}`;
+    a.download = `dados_transformados.${format.toLowerCase()}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -33,8 +33,8 @@ export const PreviewStep = ({ data, format, onStartOver }: PreviewStepProps) => 
               <FileCode2 className="w-6 h-6 text-accent" />
             </div>
             <div>
-              <CardTitle className="text-2xl">Transformation Complete</CardTitle>
-              <CardDescription>Here is your transformed data, ready for use.</CardDescription>
+              <CardTitle className="text-2xl">Transformação Concluída</CardTitle>
+              <CardDescription>Aqui estão seus dados transformados, prontos para uso.</CardDescription>
             </div>
         </div>
       </CardHeader>
@@ -48,11 +48,11 @@ export const PreviewStep = ({ data, format, onStartOver }: PreviewStepProps) => 
       <CardFooter className="flex justify-end gap-4">
         <Button variant="outline" onClick={onStartOver}>
           <RefreshCw className="mr-2 h-4 w-4" />
-          Start Over
+          Começar de Novo
         </Button>
         <Button onClick={handleDownload} className="glow-primary">
           <Download className="mr-2 h-4 w-4" />
-          Download File
+          Baixar Arquivo
         </Button>
       </CardFooter>
     </Card>
