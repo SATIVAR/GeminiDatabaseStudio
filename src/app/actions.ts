@@ -45,7 +45,7 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
                   if (el.elements && el.elements.length > 0) {
                       if (el.elements[0].type === 'cdata') {
                         value = el.elements[0].cdata;
-                      } else {
+                      } else if (el.elements[0].type === 'text') {
                         value = el.elements[0].text;
                       }
                   }
@@ -54,34 +54,40 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
                       const metaKeyEl = el.elements?.find((e:any) => e.name === 'wp:meta_key');
                       const metaValueEl = el.elements?.find((e:any) => e.name === 'wp:meta_value');
                       
-                      if (metaKeyEl && metaValueEl) {
-                         const metaKey = metaKeyEl.elements?.[0]?.cdata;
-                         const metaValue = metaValueEl.elements?.[0]?.cdata;
-                         if (metaKey) {
-                            product[metaKey] = metaValue;
-                         }
+                      const metaKey = metaKeyEl?.elements?.[0]?.cdata;
+                      const metaValue = metaValueEl?.elements?.[0]?.cdata;
+                      if (metaKey) {
+                        product[metaKey] = metaValue;
                       }
                   } else if (el.name && el.name.startsWith('wp:')) {
                      const tagName = el.name.replace('wp:', 'wp_');
                      product[tagName] = value;
                   }
                   else if(el.name === 'category'){
-                    product[el.name] = value;
+                    const categoryValue = el.elements?.[0]?.cdata ?? el.elements?.[0]?.text;
+                    if(categoryValue) {
+                        if (!product[el.name]) {
+                           product[el.name] = [];
+                        }
+                        product[el.name].push(categoryValue);
+                    }
                   }
-                   else if (el.name){
+                   else if (el.name && value){
                      product[el.name] = value;
                   }
               });
               return product;
-          }).filter((p: any) => p['wp_post_type'] === 'product');
+          }).filter((p: any) => p && p['wp_post_type'] === 'product');
 
           if(products.length > 0) {
             jsonData = products;
             jsonString = JSON.stringify(products, null, 2);
           } else {
-             throw new Error('Nenhum produto encontrado no arquivo XML do WordPress.');
+             // If no products, maybe it's a different XML structure
+             jsonString = xmljs.xml2json(fileContent, { compact: true, spaces: 2 });
           }
       } else {
+         // Fallback for non-Wordpress XML
          jsonString = xmljs.xml2json(fileContent, { compact: true, spaces: 2 });
       }
 
@@ -99,19 +105,27 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
       const parsedData = JSON.parse(jsonString);
       const mainArray = findMainArray(parsedData);
       
-      if (!mainArray) {
+      if (!mainArray && Object.keys(parsedData).length > 0) {
+        // If it's a single object, wrap it in an array
+        jsonData = [parsedData];
+        jsonString = JSON.stringify(jsonData, null, 2);
+      } else if (mainArray) {
+         jsonData = mainArray;
+         jsonString = JSON.stringify(jsonData, null, 2);
+      } else {
         throw new Error('Não foi possível encontrar um array principal de objetos nos dados.');
       }
-      jsonData = mainArray;
     }
 
     if (jsonData.length === 0) {
       throw new Error('Nenhum dado encontrado no arquivo para gerar um esquema.');
     }
 
-    const dataForSchemaDiscovery = jsonData.slice(0, 5);
+    // Use a sample of the data for schema discovery to avoid overly large payloads
+    const dataForSchemaDiscovery = jsonData.slice(0, 5); 
+    const schemaInput = JSON.stringify(dataForSchemaDiscovery, null, 2);
     
-    const schemaResponse = await discoverSchema(JSON.stringify(dataForSchemaDiscovery));
+    const schemaResponse = await discoverSchema(schemaInput);
     
     const SchemaProperties = z.object({
       type: z.literal('object'),
@@ -134,6 +148,7 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
       sample: sampleItem[key] ?? '',
     }));
     
+    // Pass the full original data, not just the sample
     return { sourceData: jsonData, sourceSchema };
 
   } catch (error) {
