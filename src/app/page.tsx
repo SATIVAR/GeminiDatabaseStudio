@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { UploadCloud } from 'lucide-react';
+import { UploadCloud, DatabaseZap } from 'lucide-react';
 
 import type { SourceField, TargetField, OutputFormat } from '@/components/data-studio/types';
 import { UploadStep } from '@/components/data-studio/upload-step';
@@ -104,15 +104,11 @@ export default function Home() {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden p-4 md:p-8">
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-primary/10 glow-primary opacity-20 blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 h-1/2 w-1/2 bg-accent/10 glow-accent opacity-20 blur-3xl"></div>
-      </div>
       
       <main className="z-10 flex w-full max-w-7xl flex-col items-center">
         <div className="flex items-center gap-4 mb-4">
-           <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center border border-primary/50">
-              <UploadCloud className="w-6 h-6 text-primary" />
+           <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center border border-primary/50 shadow-[0_0_15px_0_hsl(var(--primary)/0.5)]">
+             <DatabaseZap size={28} className="text-primary" />
            </div>
            <h1 className="text-4xl md:text-5xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-white to-white/70">
             Gemini Data Studio
