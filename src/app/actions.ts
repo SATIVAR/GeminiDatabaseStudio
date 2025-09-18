@@ -43,7 +43,11 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
               item.elements?.forEach((el: any) => {
                   let value: any;
                   if (el.elements && el.elements.length > 0) {
-                      value = el.elements[0].text || el.elements[0].cdata;
+                      if (el.elements[0].type === 'cdata') {
+                        value = el.elements[0].cdata;
+                      } else {
+                        value = el.elements[0].text;
+                      }
                   }
 
                   if (el.name === 'wp:postmeta') {
@@ -57,14 +61,14 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
                             product[metaKey] = metaValue;
                          }
                       }
-                  } else if (el.name.startsWith('wp:')) {
+                  } else if (el.name && el.name.startsWith('wp:')) {
                      const tagName = el.name.replace('wp:', 'wp_');
                      product[tagName] = value;
                   }
                   else if(el.name === 'category'){
                     product[el.name] = value;
                   }
-                   else {
+                   else if (el.name){
                      product[el.name] = value;
                   }
               });

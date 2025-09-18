@@ -40,8 +40,8 @@ const discoverSchemaFlow = ai.defineFlow(
     outputSchema: DiscoverSchemaOutputSchema,
   },
   async input => {
-    if (input === null || typeof input === 'undefined') {
-      throw new Error('Input data is null or undefined.');
+    if (input === null || typeof input === 'undefined' || input.trim() === '') {
+      throw new Error('Input data is null, undefined, or empty.');
     }
     const {output} = await discoverSchemaPrompt(input);
     return output!;
