@@ -11,7 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const DiscoverSchemaInputSchema = z.string().describe('A JSON string representing the data to analyze.');
+const DiscoverSchemaInputSchema = z.string().nullable().describe('A JSON string representing the data to analyze.');
 export type DiscoverSchemaInput = z.infer<typeof DiscoverSchemaInputSchema>;
 
 const DiscoverSchemaOutputSchema = z.string().describe('A JSON string representing the inferred schema of the input data.');
@@ -37,6 +37,9 @@ const discoverSchemaFlow = ai.defineFlow(
     outputSchema: DiscoverSchemaOutputSchema,
   },
   async input => {
+    if (!input) {
+      throw new Error('Input data is null or undefined.');
+    }
     const {output} = await discoverSchemaPrompt(input);
     return output!;
   }
