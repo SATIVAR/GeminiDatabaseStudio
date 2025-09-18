@@ -33,8 +33,7 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
     if (fileType.includes('json')) {
       jsonString = fileContent;
     } else if (fileType.includes('xml')) {
-      const result = xmljs.xml2js(fileContent, { compact: false, elementsKey: 'elements' });
-      const parsedJs = JSON.parse(result);
+      const parsedJs = xmljs.xml2js(fileContent, { compact: false, elementsKey: 'elements' });
       
       const channel = parsedJs.elements?.find((el: any) => el.name === 'rss')?.elements?.find((el: any) => el.name === 'channel');
       if (channel && channel.elements) {
