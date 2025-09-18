@@ -88,11 +88,16 @@ export default {
             height: '0',
           },
         },
+        breathing: {
+          '0%, 100%': { boxShadow: '0 0 15px 0 hsl(var(--primary) / 0.5)' },
+          '50%': { boxShadow: '0 0 25px 5px hsl(var(--primary) / 0.7)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'spin-slow': 'spin 4s linear infinite',
+        breathing: 'breathing 3s ease-in-out infinite',
       },
     },
   },

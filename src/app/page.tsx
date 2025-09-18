@@ -103,11 +103,11 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden p-4 md:p-8">
-      <main className="z-10 flex w-full max-w-7xl flex-1 flex-col items-center justify-center">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden">
+      <main className="z-10 flex w-full max-w-7xl flex-1 flex-col items-center justify-center p-4 md:p-8">
         <div className="flex flex-col items-center text-center mb-10">
           <div className="flex items-center gap-4 mb-4">
-             <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center border border-primary/50 shadow-[0_0_15px_0_hsl(var(--primary)/0.5)]">
+             <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center border border-primary/50 animate-breathing">
                <DatabaseZap size={28} className="text-primary" />
              </div>
              <h1 className="text-4xl md:text-5xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-white to-white/70">
