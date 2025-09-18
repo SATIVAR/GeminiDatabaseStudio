@@ -12,14 +12,6 @@ const findMainArray = (data: any): any[] | null => {
     return data;
   }
   if (typeof data === 'object' && data !== null) {
-    // Specific path for WordPress XML exports
-    if (data?.rss?.channel?.item) {
-        const items = Array.isArray(data.rss.channel.item) ? data.rss.channel.item : [data.rss.channel.item];
-        // Filter for actual products, not attachments
-        const products = items.filter((item: any) => item['wp:post_type']?._cdata === 'product');
-        if (products.length > 0) return products;
-    }
-
     for (const key in data) {
       if (Array.isArray(data[key]) && data[key].length > 0 && typeof data[key][0] === 'object') {
         return data[key];
@@ -41,29 +33,44 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
     if (fileType.includes('json')) {
       jsonString = fileContent;
     } else if (fileType.includes('xml')) {
-      const result = xmljs.xml2json(fileContent, { compact: false, elementsKey: 'elements' });
+      const result = xmljs.xml2js(fileContent, { compact: false, elementsKey: 'elements' });
       const parsedJs = JSON.parse(result);
       
-      // WordPress/RSS specific logic
       const channel = parsedJs.elements?.find((el: any) => el.name === 'rss')?.elements?.find((el: any) => el.name === 'channel');
       if (channel && channel.elements) {
           const items = channel.elements.filter((el: any) => el.name === 'item');
           const products = items.map((item: any) => {
               const product: Record<string, any> = {};
               item.elements?.forEach((el: any) => {
-                  let value: any = el.elements?.[0]?.text || el.elements?.[0]?.cdata;
-                  if (el.name.startsWith('wp:postmeta')) {
-                      const metaKey = el.elements?.find((e:any) => e.name === 'wp:meta_key')?.elements?.[0]?.cdata;
-                      const metaValue = el.elements?.find((e:any) => e.name === 'wp:meta_value')?.elements?.[0]?.cdata;
-                      if (metaKey) {
-                          product[metaKey] = metaValue;
+                  let value: any;
+                  if (el.elements && el.elements.length > 0) {
+                      value = el.elements[0].text || el.elements[0].cdata;
+                  }
+
+                  if (el.name === 'wp:postmeta') {
+                      const metaKeyEl = el.elements?.find((e:any) => e.name === 'wp:meta_key');
+                      const metaValueEl = el.elements?.find((e:any) => e.name === 'wp:meta_value');
+                      
+                      if (metaKeyEl && metaValueEl) {
+                         const metaKey = metaKeyEl.elements?.[0]?.cdata;
+                         const metaValue = metaValueEl.elements?.[0]?.cdata;
+                         if (metaKey) {
+                            product[metaKey] = metaValue;
+                         }
                       }
-                  } else {
+                  } else if (el.name.startsWith('wp:')) {
+                     const tagName = el.name.replace('wp:', 'wp_');
+                     product[tagName] = value;
+                  }
+                  else if(el.name === 'category'){
+                    product[el.name] = value;
+                  }
+                   else {
                      product[el.name] = value;
                   }
               });
               return product;
-          }).filter((p: any) => p['wp:post_type'] === 'product');
+          }).filter((p: any) => p['wp_post_type'] === 'product');
 
           if(products.length > 0) {
             jsonData = products;
@@ -72,7 +79,6 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
              throw new Error('Nenhum produto encontrado no arquivo XML do WordPress.');
           }
       } else {
-         // Fallback to compact conversion for other XMLs
          jsonString = xmljs.xml2json(fileContent, { compact: true, spaces: 2 });
       }
 
@@ -86,7 +92,7 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
       throw new Error(`Tipo de arquivo não suportado: ${fileType}. Por favor, envie arquivos JSON, XML ou Excel.`);
     }
     
-    if (jsonData.length === 0) {
+    if (jsonData.length === 0 && jsonString) {
       const parsedData = JSON.parse(jsonString);
       const mainArray = findMainArray(parsedData);
       
@@ -96,11 +102,11 @@ export async function discoverSchemaAction(fileContent: string, fileType: string
       jsonData = mainArray;
     }
 
-    // Use a sample of the data for schema discovery to avoid oversized payloads
-    const dataForSchemaDiscovery = jsonData.slice(0, 5);
-    if (dataForSchemaDiscovery.length === 0) {
-      throw new Error('Nenhum dado encontrado para gerar um esquema.');
+    if (jsonData.length === 0) {
+      throw new Error('Nenhum dado encontrado no arquivo para gerar um esquema.');
     }
+
+    const dataForSchemaDiscovery = jsonData.slice(0, 5);
     
     const schemaResponse = await discoverSchema(JSON.stringify(dataForSchemaDiscovery));
     
@@ -140,7 +146,6 @@ export async function transformDataAction(input: IntelligentDataTransformationIn
   try {
     const result = await intelligentDataTransformation(input);
 
-    // Basic validation
     if (input.outputFormat === 'JSON') {
       try {
         JSON.parse(result.transformedData);
@@ -152,7 +157,6 @@ export async function transformDataAction(input: IntelligentDataTransformationIn
          throw new Error('A IA gerou um SQL inválido. Por favor, tente novamente.');
       }
     } else if (input.outputFormat === 'XML') {
-      // Very basic XML check
       if (!result.transformedData.startsWith('<')) {
         throw new Error('A IA gerou um XML inválido. Por favor, tente novamente.');
       }
