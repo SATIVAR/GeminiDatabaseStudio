@@ -1,6 +1,6 @@
+'use server';
 import { config } from 'dotenv';
 config();
 
-// AI flows are temporarily disabled.
-// import '@/ai/flows/schema-discovery.ts';
-// import '@/ai/flows/intelligent-data-transformation.ts';
+import '@/ai/flows/schema-discovery';
+import '@/ai/flows/intelligent-data-transformation';
