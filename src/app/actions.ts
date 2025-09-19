@@ -1,7 +1,11 @@
 'use server';
 
+import * as fs from 'fs/promises';
+import * as os from 'os';
+import * as path from 'path';
 import * as xlsx from 'xlsx';
 import * as xmljs from 'xml-js';
+import sqlite3 from 'sqlite3';
 import { discoverSchema, intelligentDataTransformation, type IntelligentDataTransformationInput } from '@/ai/flows';
 
 /**
@@ -84,14 +88,96 @@ function processWordPressXml(fileContent: string) {
 }
 
 /**
+ * Processes an SQLite .db file to extract schema information.
+ */
+async function processSqliteDb(fileContent: ArrayBuffer): Promise<Record<string, any>[]> {
+  const tempDir = os.tmpdir();
+  const tempFilePath = path.join(tempDir, `upload_${Date.now()}.db`);
+  let db: sqlite3.Database;
+
+  try {
+    // 1. Save the file temporarily
+    await fs.writeFile(tempFilePath, Buffer.from(fileContent));
+    
+    // 2. Connect to the SQLite database
+    db = new sqlite3.Database(tempFilePath, sqlite3.OPEN_READONLY);
+    
+    const dbQuery = (query: string, params: any[] = []): Promise<any[]> => {
+      return new Promise((resolve, reject) => {
+        db.all(query, params, (err, rows) => {
+          if (err) return reject(err);
+          resolve(rows);
+        });
+      });
+    };
+
+    // 3. Introspect the schema
+    const tables = await dbQuery("SELECT name FROM sqlite_master WHERE type='table';");
+
+    if (tables.length === 0) {
+      throw new Error('Nenhuma tabela encontrada no banco de dados SQLite.');
+    }
+
+    const schemaInfo: Record<string, any>[] = [];
+    for (const table of tables) {
+        const tableName = table.name;
+        // Don't include sqlite internal tables
+        if (tableName.startsWith('sqlite_')) {
+            continue;
+        }
+
+        const columns = await dbQuery(`PRAGMA table_info('${tableName}');`);
+        const firstRow = await dbQuery(`SELECT * FROM "${tableName}" LIMIT 1;`);
+
+        schemaInfo.push({
+            tableName: tableName,
+            columns: columns,
+            sampleData: firstRow[0] || {}
+        });
+    }
+
+    // For schema discovery, we can just return a simplified version of one table
+    // A more complex implementation would let the user choose the table in the UI
+    const firstTable = schemaInfo[0];
+    const records = [firstTable.sampleData];
+    
+    // Enrich with column types
+    if (records.length > 0) {
+      const enrichedRecord: Record<string, any> = {};
+      for (const col of firstTable.columns) {
+        enrichedRecord[col.name] = {
+          value: records[0][col.name],
+          type: col.type,
+        };
+      }
+      return [enrichedRecord];
+    }
+
+    return records;
+
+  } catch (error) {
+    console.error("Erro ao processar arquivo SQLite:", error);
+    throw error;
+  } finally {
+    // 4. Clean up: close DB and delete temporary file
+    db!.close();
+    await fs.unlink(tempFilePath).catch(err => console.error("Falha ao apagar arquivo temporário:", err));
+  }
+}
+
+
+/**
  * Action to discover the schema from an uploaded file.
  * It now intelligently handles different file types and passes the data to the AI flow.
  */
-export async function discoverSchemaAction(fileContent: string | ArrayBuffer, fileType: string) {
+export async function discoverSchemaAction(fileContent: string | ArrayBuffer, fileType: string, fileName: string) {
   try {
     let records: Record<string, any>[] = [];
+    const fileExtension = fileName.split('.').pop()?.toLowerCase();
 
-    if (fileType.includes('sheet') || fileType.includes('excel')) {
+    if (fileExtension === 'db' || fileType === 'application/x-sqlite3') {
+        records = await processSqliteDb(fileContent as ArrayBuffer);
+    } else if (fileType.includes('sheet') || fileType.includes('excel')) {
       const workbook = xlsx.read(fileContent, { type: 'buffer' });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
@@ -101,7 +187,7 @@ export async function discoverSchemaAction(fileContent: string | ArrayBuffer, fi
     } else if (fileType.includes('json')) {
       records = JSON.parse(fileContent as string);
     } else {
-      throw new Error(`Tipo de arquivo não suportado: ${fileType}`);
+      throw new Error(`Tipo de arquivo não suportado: ${fileType} (${fileExtension})`);
     }
 
     if (records.length === 0) {
@@ -110,8 +196,7 @@ export async function discoverSchemaAction(fileContent: string | ArrayBuffer, fi
 
     // Convert the parsed records to a JSON string for the AI flow
     const jsonString = JSON.stringify(records, null, 2);
-
-    // Call the intelligent schema discovery flow
+    
     const result = await discoverSchema(jsonString);
     
     return result;

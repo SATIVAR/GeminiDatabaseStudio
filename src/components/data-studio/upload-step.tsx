@@ -23,15 +23,17 @@ export const UploadStep = ({ onSuccess, setIsLoading, setLoadingMessage }: Uploa
     
     try {
       const fileType = file.type;
+      const fileName = file.name;
       let fileContent: string | ArrayBuffer;
 
-      if (fileType.includes('sheet') || fileType.includes('excel')) {
+      // Handle binary files like Excel and SQLite
+      if (fileType.includes('sheet') || fileType.includes('excel') || fileName.endsWith('.db')) {
         fileContent = await file.arrayBuffer();
       } else {
         fileContent = await file.text();
       }
       
-      const result = await discoverSchemaAction(fileContent as any, fileType);
+      const result = await discoverSchemaAction(fileContent as any, fileType, fileName);
       
       if (result.error) {
         throw new Error(result.error);
@@ -100,7 +102,7 @@ export const UploadStep = ({ onSuccess, setIsLoading, setLoadingMessage }: Uploa
         type="file"
         className="sr-only"
         onChange={handleFileChange}
-        accept=".json,.xml,.xlsx,.xls,.csv"
+        accept=".json,.xml,.xlsx,.xls,.csv,.db"
       />
       <label htmlFor="file-upload" className="w-full h-full flex flex-col items-center justify-center cursor-pointer">
         <UploadCloud
@@ -114,7 +116,7 @@ export const UploadStep = ({ onSuccess, setIsLoading, setLoadingMessage }: Uploa
           {isDragging ? "Solte o arquivo!" : "Arraste e solte seu arquivo de dados aqui"}
         </h2>
         <p className="text-muted-foreground mt-2">
-          ou clique para procurar. Suporta arquivos XML, Excel e JSON.
+          ou clique para procurar. Suporta arquivos XML, Excel, JSON e SQLite (.db).
         </p>
       </label>
     </div>
