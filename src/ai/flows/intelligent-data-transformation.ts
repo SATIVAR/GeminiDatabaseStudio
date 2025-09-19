@@ -19,7 +19,7 @@ const DataFieldSchema = z.object({
 });
 
 // Defines the input schema for the entire transformation flow.
-export const IntelligentDataTransformationInputSchema = z.object({
+const IntelligentDataTransformationInputSchema = z.object({
   sourceData: z.string().describe('The source data in JSON format.'),
   targetSchema: z.array(DataFieldSchema).describe('The user-defined schema for the transformation.'),
   outputFormat: z.enum(['JSON', 'SQL', 'XML']).describe('The desired output format.'),
@@ -27,17 +27,24 @@ export const IntelligentDataTransformationInputSchema = z.object({
 export type IntelligentDataTransformationInput = z.infer<typeof IntelligentDataTransformationInputSchema>;
 
 // Defines the output schema for the transformation flow.
-export const IntelligentDataTransformationOutputSchema = z.object({
+const IntelligentDataTransformationOutputSchema = z.object({
   transformedData: z.string().describe('The transformed data in the specified output format.'),
 });
 export type IntelligentDataTransformationOutput = z.infer<typeof IntelligentDataTransformationOutputSchema>;
 
-// The Genkit prompt for the transformation.
-const transformPrompt = ai.definePrompt({
-  name: 'intelligentDataTransformer',
-  input: { schema: IntelligentDataTransformationInputSchema },
-  output: { schema: IntelligentDataTransformationOutputSchema },
-  prompt: `
+
+/**
+ * Public function to invoke the intelligent data transformation flow.
+ * @param input The transformation configuration.
+ * @returns A promise that resolves to the transformed data.
+ */
+export async function intelligentDataTransformation(input: IntelligentDataTransformationInput): Promise<IntelligentDataTransformationOutput> {
+  // The Genkit prompt for the transformation.
+  const transformPrompt = ai.definePrompt({
+    name: 'intelligentDataTransformer',
+    input: { schema: IntelligentDataTransformationInputSchema },
+    output: { schema: IntelligentDataTransformationOutputSchema },
+    prompt: `
     You are an expert ETL (Extract, Transform, Load) engineer. Your task is to transform the provided source data into the desired output format based on the user's mapping instructions.
 
     - Source Data: A JSON string containing an array of objects.
@@ -66,33 +73,26 @@ const transformPrompt = ai.definePrompt({
 
     Output Format: {{outputFormat}}
   `,
-  helpers: {
-    jsonStringify: (obj: any) => JSON.stringify(obj, null, 2),
-  }
-});
-
-// The Genkit flow that executes the transformation.
-const intelligentDataTransformationFlow = ai.defineFlow(
-  {
-    name: 'intelligentDataTransformationFlow',
-    inputSchema: IntelligentDataTransformationInputSchema,
-    outputSchema: IntelligentDataTransformationOutputSchema,
-  },
-  async (input) => {
-    if (!input.sourceData || !input.targetSchema || input.targetSchema.length === 0) {
-      throw new Error('Invalid input: Source data and target schema must be provided.');
+    helpers: {
+      jsonStringify: (obj: any) => JSON.stringify(obj, null, 2),
     }
-    const result = await transformPrompt(input);
-    return result.output!;
-  }
-);
+  });
 
-
-/**
- * Public function to invoke the intelligent data transformation flow.
- * @param input The transformation configuration.
- * @returns A promise that resolves to the transformed data.
- */
-export async function intelligentDataTransformation(input: IntelligentDataTransformationInput): Promise<IntelligentDataTransformationOutput> {
+  // The Genkit flow that executes the transformation.
+  const intelligentDataTransformationFlow = ai.defineFlow(
+    {
+      name: 'intelligentDataTransformationFlow',
+      inputSchema: IntelligentDataTransformationInputSchema,
+      outputSchema: IntelligentDataTransformationOutputSchema,
+    },
+    async (input) => {
+      if (!input.sourceData || !input.targetSchema || input.targetSchema.length === 0) {
+        throw new Error('Invalid input: Source data and target schema must be provided.');
+      }
+      const result = await transformPrompt(input);
+      return result.output!;
+    }
+  );
+  
   return await intelligentDataTransformationFlow(input);
 }

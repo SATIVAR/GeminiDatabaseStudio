@@ -9,7 +9,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 // Defines the input schema for the discovery flow. It expects a JSON string.
-export const DiscoverSchemaInputSchema = z.string().describe('A JSON string representing the data to analyze.');
+const DiscoverSchemaInputSchema = z.string().describe('A JSON string representing the data to analyze.');
 export type DiscoverSchemaInput = z.infer<typeof DiscoverSchemaInputSchema>;
 
 // Defines the shape of a single field in the discovered schema.
@@ -20,19 +20,25 @@ const SourceFieldSchema = z.object({
 });
 
 // Defines the output schema for the discovery flow.
-export const DiscoverSchemaOutputSchema = z.object({
+const DiscoverSchemaOutputSchema = z.object({
   sourceSchema: z.array(SourceFieldSchema).describe('The inferred schema of the input data.'),
   sourceData: z.array(z.record(z.any())).describe('The original source data parsed as a JSON object.'),
 });
 export type DiscoverSchemaOutput = z.infer<typeof DiscoverSchemaOutputSchema>;
 
+/**
+ * Public function to invoke the schema discovery flow.
+ * @param input The JSON string to be analyzed.
+ * @returns A promise that resolves to the discovered schema and parsed data.
+ */
+export async function discoverSchema(input: DiscoverSchemaInput): Promise<DiscoverSchemaOutput> {
 
-// The Genkit prompt that instructs the AI on how to perform schema discovery.
-const discoverSchemaPrompt = ai.definePrompt({
-  name: 'discoverSchemaPrompt',
-  input: { schema: DiscoverSchemaInputSchema },
-  output: { schema: DiscoverSchemaOutputSchema },
-  prompt: `
+  // The Genkit prompt that instructs the AI on how to perform schema discovery.
+  const discoverSchemaPrompt = ai.definePrompt({
+    name: 'discoverSchemaPrompt',
+    input: { schema: DiscoverSchemaInputSchema },
+    output: { schema: DiscoverSchemaOutputSchema },
+    prompt: `
     You are a senior data analyst. Your task is to analyze a JSON object and infer its schema.
     
     Instructions:
@@ -49,32 +55,25 @@ const discoverSchemaPrompt = ai.definePrompt({
     {{{input}}}
     \`\`\`
   `,
-});
+  });
 
 
-// The Genkit flow that orchestrates the schema discovery.
-const discoverSchemaFlow = ai.defineFlow(
-  {
-    name: 'discoverSchemaFlow',
-    inputSchema: DiscoverSchemaInputSchema,
-    outputSchema: DiscoverSchemaOutputSchema,
-  },
-  async (input) => {
-    // Ensure the input is a non-empty string.
-    if (!input || typeof input !== 'string' || input.trim() === '') {
-        throw new Error('Input data is null, undefined, or empty.');
+  // The Genkit flow that orchestrates the schema discovery.
+  const discoverSchemaFlow = ai.defineFlow(
+    {
+      name: 'discoverSchemaFlow',
+      inputSchema: DiscoverSchemaInputSchema,
+      outputSchema: DiscoverSchemaOutputSchema,
+    },
+    async (input) => {
+      // Ensure the input is a non-empty string.
+      if (!input || typeof input !== 'string' || input.trim() === '') {
+          throw new Error('Input data is null, undefined, or empty.');
+      }
+      const { output } = await discoverSchemaPrompt(input);
+      return output!;
     }
-    const { output } = await discoverSchemaPrompt(input);
-    return output!;
-  }
-);
+  );
 
-
-/**
- * Public function to invoke the schema discovery flow.
- * @param input The JSON string to be analyzed.
- * @returns A promise that resolves to the discovered schema and parsed data.
- */
-export async function discoverSchema(input: DiscoverSchemaInput): Promise<DiscoverSchemaOutput> {
   return await discoverSchemaFlow(input);
 }
