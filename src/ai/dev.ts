@@ -1,5 +1,6 @@
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/schema-discovery.ts';
-import '@/ai/flows/intelligent-data-transformation.ts';
+// AI flows are temporarily disabled.
+// import '@/ai/flows/schema-discovery.ts';
+// import '@/ai/flows/intelligent-data-transformation.ts';
